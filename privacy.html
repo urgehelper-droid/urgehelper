@@ -33,7 +33,7 @@ ul{padding-left:20px;margin:0 0 12px}
 <main>
   <a class="back" href="./"><i></i>Urge Helper</a>
   <h1>Privacy</h1>
-  <p class="mono">Effective October 23, 2026</p>
+  <p class="mono">Effective October 29, 2026</p>
 
   <div class="summary"><p>Everything you put into Urge Helper stays on your device. We don’t have a server that stores it, we don’t track you, and we don’t sell anything.</p></div>
 
@@ -50,9 +50,13 @@ ul{padding-left:20px;margin:0 0 12px}
   <h2>Signing in with Google</h2>
   <p>If you choose “Continue with Google”, Google shares your name, email address and an account ID with this page so it can recognise you on this device. That information is stored in the same local storage described above and isn’t sent to a server of ours. Google’s sign-in service is only contacted if you tap that button. Google’s own <a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">privacy policy</a> covers what Google does.</p>
 
+  <h2>Two anonymous counts</h2>
+  <p>We keep two running totals: how many people have visited Urge Helper, and how many have pressed Help me now. The first time your device does each of these, it adds one to the matching total. That’s all that’s sent: a request to add one. No name, ID, cookie, session details or anything you typed goes with it, and the numbers can’t be traced back to anyone.</p>
+  <p>So your device isn’t counted twice, it remembers in its own storage that it already added one. The numbers are kept by <a href="https://github.com/JasonLovesDoggo/abacus" rel="noopener noreferrer" target="_blank">Abacus</a>, a free counting service, which like any web service receives your IP address with the request.</p>
+
   <h2>What we don’t do</h2>
   <ul>
-    <li>No analytics, tracking pixels, or advertising.</li>
+    <li>No analytics, tracking pixels, or advertising. Beyond the two counts above, we don’t measure visits.</li>
     <li>No tracking cookies.</li>
     <li>No selling or sharing of personal information.</li>
     <li>No microphone, camera or location access.</li>
@@ -61,6 +65,7 @@ ul{padding-left:20px;margin:0 0 12px}
   <h2>Other services that see basic connection data</h2>
   <ul>
     <li><b>Our hosting provider</b> serves the site and, like any web host, may keep short-lived server logs that include your IP address.</li>
+    <li><b>Abacus</b> keeps the two anonymous counts described above.</li>
     <li><b>Google Fonts</b> provides the typeface, so Google receives your IP address when the page loads.</li>
   </ul>
 

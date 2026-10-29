@@ -31,7 +31,7 @@
 <meta name="twitter:description" content="Free, private help for the moment an urge hits, built on research.">
 <meta name="twitter:image" content="https://urgehelper.com/og.png">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://accounts.google.com/gsi/ https://abacus.jasoncameron.dev; frame-src https://accounts.google.com/gsi/; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
  {"@type":"WebSite","@id":"https://urgehelper.com/#site","name":"Urge Helper","alternateName":["UrgeHelper","urgehelper.com"],"url":"https://urgehelper.com/","inLanguage":"en"},
@@ -683,7 +683,7 @@ body.in-flow .lime-bg.flow-bg,body.on-dash .lime-bg.flow-bg{opacity:1}
   <dl class="about-faq">
     <dt>Is Urge Helper free?</dt><dd>Yes. No ads, no subscription, no payment of any kind.</dd>
     <dt>Do I need an account?</dt><dd>No. You can start a session right away. Signing in only lets you keep your promise, journal and progress on this device.</dd>
-    <dt>Is it private?</dt><dd>Yes. There are no trackers, analytics or cookies. Your promise, journal and history stay in your own browser.</dd>
+    <dt>Is it private?</dt><dd>Yes. There are no trackers or cookies. The only thing counted is two anonymous totals: how many people have visited and how many pressed Help me now. Your promise, journal and history stay in your own browser.</dd>
     <dt>How long does a session take?</dt><dd>About 10 to 15 minutes, a little longer if the urge is strong. You can keep going if it hasn’t passed.</dd>
     <dt>Does it work?</dt><dd>Each technique has research behind it, mostly from studies on porn use, cravings and habits. The full list is under Science. This exact sequence hasn’t been tested as a whole.</dd>
     <dt>Is this therapy?</dt><dd>No. It’s a tool for the moment an urge hits. If urges feel compulsive or distressing, a therapist who does CBT or ACT has the strongest evidence.</dd>
@@ -692,7 +692,7 @@ body.in-flow .lime-bg.flow-bg,body.on-dash .lime-bg.flow-bg{opacity:1}
   <p class="mono" style="margin-top:6px">What you get</p>
   <ul><li>No ads, no feeds, no links out. Nothing to scroll.</li><li>Every step links to the research behind it, under Science.</li></ul>
   <p class="mono" style="margin-top:6px">Privacy</p>
-  <ul><li>No trackers, no analytics, no cookies.</li><li>Your promise, journal and history are stored only in your browser. There is no server holding them.</li><li>If you sign in with Google, it only shares your name and email with this page, and Google is only contacted if you choose it.</li><li>You can delete everything from your account menu at any time.</li></ul>
+  <ul><li>No trackers, no cookies, just two anonymous totals.</li><li>Your promise, journal and history are stored only in your browser. There is no server holding them.</li><li>If you sign in with Google, it only shares your name and email with this page, and Google is only contacted if you choose it.</li><li>You can delete everything from your account menu at any time.</li></ul>
   <p class="sub">Read the full <a href="privacy.html" style="color:var(--text)">privacy policy</a>.</p>
   <p class="mono" style="margin-top:6px">What it isn’t</p>
   <p class="sub">It isn’t treatment. If urges feel compulsive or distressing, a CBT or ACT therapist has the strongest evidence. If you’re in crisis, you can call or text 988, any time.</p>
@@ -852,16 +852,33 @@ const Music=(()=>{
   const chord=()=>{ ci=(ci+1)%CH.length; oscs.forEach(({o,i})=>o.frequency.setTargetAtTime(mtof(CH[ci][i]),ctx.currentTime,2.5)); };
   const shimmer=()=>{ const t=ctx.currentTime, o=ctx.createOscillator(), gn=ctx.createGain(); o.frequency.value=mtof([74,76,81,86,88][Math.random()*5|0]);
     gn.gain.setValueAtTime(0,t); gn.gain.linearRampToValueAtTime(.012,t+5); gn.gain.linearRampToValueAtTime(0,t+10); o.connect(gn); gn.connect(out); gn.connect(send); o.start(t); o.stop(t+10.2); };
-  function apply(){ if(!ctx) return; const t=ctx.currentTime, v=on&&!muted?.4:0;
-    out.gain.cancelScheduledValues(t); out.gain.setValueAtTime(out.gain.value,t); out.gain.linearRampToValueAtTime(v,t+(v?4:1.2));
+  let ducked=false;
+  function apply(fast){ if(!ctx) return; const t=ctx.currentTime, v=on&&!muted?(ducked?.14:.4):0;
+    out.gain.cancelScheduledValues(t); out.gain.setValueAtTime(out.gain.value,t); out.gain.linearRampToValueAtTime(v,t+(fast?.5:v?4:1.2));
     if(v&&!t1){ t1=setInterval(chord,20000); t2=setInterval(()=>Math.random()<.4&&shimmer(),10000); }
     if(!v&&t1){ clearInterval(t1); clearInterval(t2); t1=t2=null; } }
-  return { start(){ if(!ctx&&!build()) return; ctx.state==='suspended'&&ctx.resume(); on=true; apply(); }, stop(){ on=false; apply(); }, mute(b){ muted=b; apply(); } };
+  return { start(){ if(!ctx&&!build()) return; ctx.state==='suspended'&&ctx.resume(); on=true; apply(); }, stop(){ on=false; apply(); }, mute(b){ muted=b; apply(); }, duck(b){ if(ducked!==b){ ducked=b; apply(true); } } };
 })();
-/* No voice-over: guidance is on screen only. */
-const Voice={say(){},stop(){},set(){},ok:false};
+/* Michael's voice-over: recorded clips for the eyes-closed, ride-it-out, what-matters and exercise steps.
+   Each clip is named by a hash of the exact line on screen; lines without a clip stay silent.
+   The music dips while he talks. */
+const Voice=(()=>{
+  const IDS=new Set('fac8b966 7a0a88be 8d525c83 c3b7aee1 e14466a1 85145efe 3a57faad b2a6c429 5ba35a53 0f40e544 e0d36697 e2e0ec4f 2e5d0def d37c5a5b 297343e1 b0dbd58b a320c469 776af162 520c09e2 5a24cee6 beee7f71 8099432a b97cf03e 89e1f7cd b07c7e48 c22046ee eec19ead 9a12f6e0 e3c67444 ffeba157 34428be6 c0e9462d b8014c9b 97a1b117 f34c849e 95f6e523 1afa5e96 a6603ac5 0e043411 976ec59b 123f5e7d 691b09f1 69046aa3 35fa6928 bd4ebb31 1f59a4fd 0cd145a0 8e399daf ffcfe3e1 cb4f7a86 3a395c92 9c63bc66 a3ebe1d8 883866e2 7281332f b91fe6f0 fe682258 e6078885 3e9e06c5 3fbce837 18224840 32ddd54d 8e346ff8 124ce8e5 6081ff3f 9be31d6c d3dd7a2a 475eb63c 631823b3 3fa0a867 cd5bdbb4'.split(' '));
+  const hash=t=>{ let x=5381; for(const ch of t.trim()) x=(((x<<5)+x)+ch.codePointAt(0))>>>0; return x.toString(16).padStart(8,'0'); };
+  const el=new Audio(); el.preload='auto'; let on=true;
+  el.onended=el.onpause=()=>Music.duck(false);
+  return { ok:true,
+    /* iOS only lets audio play after a tap, so the tap that starts a session primes the player */
+    unlock(){ el.muted=true; el.src='voice/'+[...IDS][0]+'.m4a'; el.play().then(()=>{ el.pause(); el.muted=false; }).catch(()=>{ el.muted=false; }); },
+    say(t){ if(!on||!soundOn) return; let id=hash(t);
+      if(!IDS.has(id)&&/^Picture /.test(t)) id=hash('Picture that place. Make it as real as you can.'); /* a place they typed themselves */
+      if(!IDS.has(id)) return;
+      el.pause(); el.src='voice/'+id+'.m4a'; el.currentTime=0; Music.duck(true); el.play().catch(()=>Music.duck(false)); },
+    stop(){ el.pause(); },
+    set(b){ on=b; if(!b) el.pause(); } };
+})();
 let soundOn=true;
-$('#soundBtn').onclick=e=>{ soundOn=!soundOn; Music.mute(!soundOn); e.currentTarget.setAttribute('aria-pressed',String(soundOn)); };
+$('#soundBtn').onclick=e=>{ soundOn=!soundOn; Music.mute(!soundOn); if(!soundOn) Voice.stop(); e.currentTarget.setAttribute('aria-pressed',String(soundOn)); };
 
 /* ============ device storage ============ */
 const Store={ get(k,d){ try{ const v=localStorage.getItem('stu.'+k); return v?JSON.parse(v):d; }catch(e){ return d; } }, set(k,v){ try{ localStorage.setItem('stu.'+k,JSON.stringify(v)); }catch(e){} } };
@@ -1310,7 +1327,7 @@ R.picture=()=>{
   const go2=pill('Start'); go2.disabled=true; b.actions.append(go2);
   const own=$('#placeOwn',b); const upd=()=>go2.disabled=!(own.value.trim()||c.values()[0]); c.addEventListener('change',upd); own.addEventListener('input',upd);
   go2.onclick=()=>{
-    const place=(own.value.trim()||c.values()[0]).replace(/^(A|Your) /,m=>m.toLowerCase());
+    const pick=c.values()[0], place=own.value.trim()||pick[0].toLowerCase()+pick.slice(1);
     const P=[`Picture ${place}. Make it as real as you can.`,'Look around. What colors do you see? Where’s the light coming from?','Listen. What can you hear?','Is there a smell? A taste?','Feel it. The air on your skin, the ground under you.','Stay a little longer. Nothing to do but be there.'];
     const b2=screen({title:'',skip:false,early:true});
     b2.innerHTML=`<div class="center" style="position:relative"><div class="aurora"></div><p class="prompt fade-swap" data-p></p></div><p class="clock" data-left></p>`;
@@ -1597,8 +1614,16 @@ function dailyThought(){ return DAILY[(new Date().getDate()-1)%DAILY.length]; } 
 function acctInner(label){ return `<span class="face" aria-hidden="true"></span><span>${esc(label)}</span>`; }
 
 /* ============ enter / leave ============ */
+/* Two private, anonymous tallies: how many different people have visited, and how many pressed Help me now.
+   Each device adds one, once, and remembers that only in its own storage. No ID, cookie or content is sent. */
+const Count={ api:'https://abacus.jasoncameron.dev', ns:'urgehelper-com',
+  live:location.hostname==='urgehelper.com'||location.hostname==='www.urgehelper.com',
+  once(k){ if(!this.live) return; try{ if(localStorage.getItem('uh.counted.'+k)) return; localStorage.setItem('uh.counted.'+k,'1'); }catch(e){ return; } /* kept apart from stu.* so deleting your data doesn't count you twice */
+    fetch(`${this.api}/hit/${this.ns}/${k}`,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer'}).catch(()=>{}); } };
+Count.once('visitors');
 function startFlow(from){
   if(app.active) return;
+  Count.once('helped'); Voice.unlock();
   const view=app.view==='dash'?$('#dash'):$('#home'), f=$('#flow'), d=reduce?0:1;
   app.session={start:Date.now(),ratings:{},done:[],skipped:[]}; app.active=true; app.asked=false; app.finished=false;
   Music.start(); Orb.burst();
