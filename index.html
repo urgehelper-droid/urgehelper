@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+<script>try{if(matchMedia('(pointer:coarse),(max-width:820px)').matches)document.documentElement.classList.add('lite')}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Urge Helper · Free help to stop porn urges, right when they hit</title>
@@ -178,6 +179,9 @@ p,h1,h2{margin:0}
 .pad button:active{transform:scale(.92);background:var(--glass-hi)}
 .pad svg{width:22px;height:22px}
 .pad{-webkit-user-select:none;user-select:none}
+/* while the block game runs, long presses and drags must never select text or open the iOS callout */
+body.no-select,body.no-select *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+#blocks{touch-action:none}
 .screen.game{gap:12px;padding-block:12px max(12px,env(safe-area-inset-bottom,0px))}
 .screen.game .board-wrap{gap:10px}
 .screen.game [data-msg]{max-width:34ch;text-align:center;line-height:1.4}
@@ -568,6 +572,22 @@ body.in-flow .lime-bg.flow-bg,body.on-dash .lime-bg.flow-bg{opacity:1}
 .dash-milo p{margin:0;font-size:clamp(17px,4.6vw,20px);line-height:1.4;color:var(--text);font-weight:600;letter-spacing:-.01em;text-wrap:balance}
 .dash-milo small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-weight:400}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important}}
+/* phones: the same look, minus the full-screen blurs, blend modes and grain that run iPhone Safari out of memory */
+.lite .grain,.lite .hero-grain{display:none}
+.lite .flow-bg .bg-art{display:none}
+.lite .flow-bg{background:
+    radial-gradient(80% 30% at 26% 17%,rgba(156,140,10,.9),rgba(156,140,10,0)),
+    radial-gradient(60% 30% at 52% 58%,rgba(160,206,26,.28),rgba(160,206,26,0)),
+    radial-gradient(55% 26% at 106% 104%,rgba(218,234,187,.6),rgba(218,234,187,0)),
+    linear-gradient(170deg,#283f07 0%,#2f4508 35%,#253a07 65%,#1a3006 100%)}
+.lite .bg-port .p-base{filter:none}.lite .bg-port .p-streaks{filter:blur(3px)}
+.lite .ph-smear,.lite .ph-wall.odd{display:none}
+.lite .ph-shade{filter:blur(24px)}.lite .milo-pal .mouth-cover{filter:none}
+.lite .w{filter:none}.lite .fade-swap.out{filter:none}
+.lite #home.out,.lite #dash.out,.lite .screen.leaving{filter:none}
+.lite .sheet-bg{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(2,3,5,.82)}
+.lite .chip-btn,.lite .home-note,.lite .pill.glass,.lite .pad button,.lite .acct-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
+.lite .aurora{filter:blur(20px)}
 </style>
 </head>
 <body>
@@ -594,17 +614,17 @@ body.in-flow .lime-bg.flow-bg,body.on-dash .lime-bg.flow-bg{opacity:1}
       <i class="ph-shade" data-q aria-hidden="true" data-d="-110,80"></i>
       <i class="ph-wall back" data-w="-26.00,18.00" aria-hidden="true"></i>
       <i class="ph-wall" data-w="-24.14,16.71" aria-hidden="true"></i>
-      <i class="ph-wall" data-w="-22.29,15.43" aria-hidden="true"></i>
+      <i class="ph-wall odd" data-w="-22.29,15.43" aria-hidden="true"></i>
       <i class="ph-wall" data-w="-20.43,14.14" aria-hidden="true"></i>
-      <i class="ph-wall" data-w="-18.57,12.86" aria-hidden="true"></i>
+      <i class="ph-wall odd" data-w="-18.57,12.86" aria-hidden="true"></i>
       <i class="ph-wall" data-w="-16.71,11.57" aria-hidden="true"></i>
-      <i class="ph-wall" data-w="-14.86,10.29" aria-hidden="true"></i>
+      <i class="ph-wall odd" data-w="-14.86,10.29" aria-hidden="true"></i>
       <i class="ph-wall" data-w="-13.00,9.00" aria-hidden="true"></i>
-      <i class="ph-wall" data-w="-11.14,7.71" aria-hidden="true"></i>
+      <i class="ph-wall odd" data-w="-11.14,7.71" aria-hidden="true"></i>
       <i class="ph-wall" data-w="-9.29,6.43" aria-hidden="true"></i>
-      <i class="ph-wall" data-w="-7.43,5.14" aria-hidden="true"></i>
+      <i class="ph-wall odd" data-w="-7.43,5.14" aria-hidden="true"></i>
       <i class="ph-wall" data-w="-5.57,3.86" aria-hidden="true"></i>
-      <i class="ph-wall" data-w="-3.71,2.57" aria-hidden="true"></i>
+      <i class="ph-wall odd" data-w="-3.71,2.57" aria-hidden="true"></i>
       <i class="ph-wall" data-w="-1.86,1.29" aria-hidden="true"></i>
       <canvas class="ph-canvas" id="phone" data-q3 aria-hidden="true"></canvas>
       <div class="ph-hitwrap" data-q3><button class="ph-hit" id="helpBtn" type="button" aria-label="I'm having an urge. Help me now.">Help me now</button></div>
@@ -747,7 +767,7 @@ function layoutHero(){
 /* Paint the hero phone at 2x into its canvas: titanium rim, black bezel, lit lime screen and our own app on it. */
 function drawPhone(hover=false){
   const cv=$('#phone'); if(!cv) return;
-  const W=680, H=1504, S=2, x=cv.getContext('2d'); cv.width=W*S; cv.height=H*S; x.scale(S,S);
+  const W=680, H=1504, S=document.documentElement.classList.contains('lite')?1.25:2, x=cv.getContext('2d'); cv.width=W*S; cv.height=H*S; x.scale(S,S);
   const rr=(X,Y,w,h,r)=>{ x.beginPath(); x.roundRect(X,Y,w,h,r); };
   const font=(px,wt=800)=>`${wt} ${px}px "Plus Jakarta Sans","Geist",system-ui,sans-serif`;
   const text=(t,X,Y,px,ls,col,align='left',wt=800)=>{ x.font=font(px,wt); x.fillStyle=col; x.textBaseline='middle'; x.textAlign=align; if('letterSpacing' in x) x.letterSpacing=(ls*px)+'px'; x.fillText(t,X,Y); return x.measureText(t).width; };
@@ -881,7 +901,7 @@ const TRUTH={
   'I deserve it':'You do deserve to feel good. This won’t do that. It takes more than it gives, and you’ll feel worse after, not better.',
   'I already slipped today':'One slip doesn’t write off the day. Stopping now still counts, and it’s the part that matters most.',
   'It’s not a big deal':'If it weren’t a big deal to you, you wouldn’t be here. You came here because it matters.',
-  'I’ll start fresh tomorrow':'Tomorrow starts tonight. The fresh start you want is this exact moment.',
+  'I’ll start fresh tomorrow':'Tomorrow starts today. The fresh start you want is this exact moment.',
   'I’ll just look for a second':'A second is how it always starts. Looking isn’t a safe middle ground, it’s the first step of giving in.',
   'No one will know':'You’ll know. And you’re the one this is for.'
 };
@@ -1048,8 +1068,8 @@ function talkItThrough(){
   const REPLY={
     'I don’t want anyone to know about this':'That’s completely fair. This is private, and you never have to tell anyone. That’s what this is for. You can talk it through here, and it stays here.',
     'It’s too personal to talk about':'Makes sense. Some things are just yours. You can still get it out of your head without saying it to anyone. That’s what we’re doing right now.',
-    'There’s honestly no one right now':'That’s a hard place to be, and it’s far more common than people admit. You’re not the only one sitting with this tonight.',
-    'My friendships aren’t that close':'A lot of people feel that way, especially as life gets busier. Closeness can be rebuilt one small message at a time. It doesn’t have to happen tonight.',
+    'There’s honestly no one right now':'That’s a hard place to be, and it’s far more common than people admit. You’re not the only one sitting with this right now.',
+    'My friendships aren’t that close':'A lot of people feel that way, especially as life gets busier. Closeness can be rebuilt one small message at a time. It doesn’t have to happen today.',
     'I don’t have a partner right now':'That can make nights like this feel louder. The urge offers a shortcut to feeling wanted. It just never delivers the real thing, and you deserve the real thing.',
     'Everyone’s busy or asleep':'Timing is rough sometimes. You don’t need anyone awake to get through the next ten minutes. You’ve got this, and you’ve got me here.',
     'I’ve drifted from people':'Drifting happens quietly, and it’s not a verdict on you. People are often glad to hear from someone they’ve lost touch with, whenever you’re ready.',
@@ -1080,7 +1100,7 @@ function talkItThrough(){
       await say('Good. Stuck moments pass. This one will too.');
     } else {
       await say('That’s a heavy thing to carry, and it makes sense the urge shows up when you feel this way. Low moments don’t last, even when they feel like they will.');
-      await say('Getting through tonight without giving in is a real win. Let’s do it together.');
+      await say('Getting through today without giving in is a real win. Let’s do it together.');
     }
     await say('You showed up for yourself just now. That counts. Next is a game that crowds out the urge.');
     const c=pill('Keep going'); c.onclick=()=>next(); b.actions.append(c); showLater(c);
@@ -1115,7 +1135,7 @@ R.forward=()=>{
   const go1=pill('Start'); b.actions.append(go1);
   go1.onclick=()=>{
     const P=['If you gave in, how would you feel ten minutes later?','How would you feel about it tomorrow morning?','What would it cost you? Your time, your streak, how you see yourself.',
-      'Now think about getting through tonight instead.','How would you feel tomorrow morning then?','That’s the version worth choosing.'];
+      'Now think about getting through today instead.','How would you feel tomorrow morning then?','That’s the version worth choosing.'];
     const b2=screen({title:'',skip:false});
     b2.innerHTML=`<div class="center"><p class="prompt fade-swap" data-p></p></div><p class="clock" data-left></p>`;
     const el=$('[data-p]',b2), per=9; let shown=-1;
@@ -1224,6 +1244,7 @@ R.dot=()=>{
 /* Stack: falling blocks, drawn soft and smooth (pieces glide between cells) */
 R.blocks=()=>{
   const b=screen({title:'Stack the blocks.',early:true}); b.parentElement.classList.add('game');
+  document.body.classList.add('no-select'); const noSel=e=>e.preventDefault(); document.addEventListener('selectstart',noSel); onCleanup(()=>{ document.body.classList.remove('no-select'); document.removeEventListener('selectstart',noSel); getSelection()?.removeAllRanges(); });
   b.innerHTML=`<div class="board-wrap"><div class="meta clock"><span data-score>0 lines</span><span data-left>3:00</span></div><div data-board></div>
     <div class="pad">${[['l','M15 5l-7 7 7 7','Left'],['r','M19 12a7 7 0 1 1-2-4.9M19 4v4h-4','Turn'],['R','M9 5l7 7-7 7','Right'],['d','M12 5v12M6 12l6 6 6-6','Drop']].map(([k,p,l])=>`<button type="button" data-a="${k}" aria-label="${l}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${p}"/></svg></button>`).join('')}</div>
     <p class="clock" data-msg>Your mind can’t hold the urge and the blocks at once · drag, tap to turn, flick down</p></div>`;
@@ -1561,7 +1582,7 @@ const DAILY=[
   'A walk, a glass of water, a text to a friend. Simple things are strong things.',
   'You’re building something. Today is one more brick.',
   'Pay attention to when it hits. Patterns are clues, not failures.',
-  'Late nights are tricky. Put the phone somewhere else tonight.',
+  'Late nights are tricky. Charge your phone outside the bedroom.',
   'You don’t have to feel ready to make a good choice.',
   'Name the feeling. It loses some of its grip.',
   'What you do most days matters more than what you do on one day.',
@@ -1639,7 +1660,7 @@ const CHAT={
     qs:[{q:'What’s it telling you right now?',a:{
       'Just this once won’t matter':'That’s its oldest line. “Just once” is how it always starts, and it never stays once.',
       'I already messed up today':'Then today’s the perfect day to break the pattern. One slip doesn’t have to turn into two.',
-      'I deserve it after today':'You do deserve something good tonight. This just isn’t it. It takes more than it gives.',
+      'I deserve it after today':'You do deserve something good today. This just isn’t it. It takes more than it gives.',
       'I can’t stand this feeling':'You can, because you are, right now. Feelings this strong burn out fast. Give it a few more minutes.',
       'Nobody will know':'You’ll know. And you’re the one person whose opinion of you matters most here.',
       'It’s not a big deal':'If it weren’t a big deal to you, you wouldn’t be here. That part of you that showed up? Listen to that one.',
