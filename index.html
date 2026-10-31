@@ -1615,11 +1615,19 @@ function acctInner(label){ return `<span class="face" aria-hidden="true"></span>
 
 /* ============ enter / leave ============ */
 /* Two private, anonymous tallies: how many different people have visited, and how many pressed Help me now.
-   Each device adds one, once, and remembers that only in its own storage. No ID, cookie or content is sent. */
+   Each browser adds one, once, and remembers that only in its own storage. No ID, cookie or content is sent.
+   Accuracy rules: only the real site counts, bots and automated browsers never count, a device is marked
+   counted only after the server confirms, and two tabs opening at once can't both count. */
 const Count={ api:'https://abacus.jasoncameron.dev', ns:'urgehelper-com',
-  live:location.hostname==='urgehelper.com'||location.hostname==='www.urgehelper.com',
-  once(k){ if(!this.live) return; try{ if(localStorage.getItem('uh.counted.'+k)) return; localStorage.setItem('uh.counted.'+k,'1'); }catch(e){ return; } /* kept apart from stu.* so deleting your data doesn't count you twice */
-    fetch(`${this.api}/hit/${this.ns}/${k}`,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer'}).catch(()=>{}); } };
+  live:/^(www\.)?urgehelper\.com$/.test(location.hostname),
+  bot:navigator.webdriver||/bot|crawl|spider|slurp|mediapartners|bingpreview|facebookexternalhit|embedly|whatsapp|telegram|discord|slack|skype|headless|lighthouse|pagespeed|gtmetrix|prerender|phantom|puppeteer|playwright|selenium/i.test(navigator.userAgent),
+  once(k){ if(!this.live||this.bot) return;
+    const done='uh.counted.'+k, lock='uh.counting.'+k; /* kept apart from stu.* so deleting your data doesn't count you twice */
+    try{ if(localStorage.getItem(done)) return; const l=+localStorage.getItem(lock)||0; if(Date.now()-l<30000) return; localStorage.setItem(lock,Date.now()); }catch(e){ return; }
+    fetch(`${this.api}/hit/${this.ns}/${k}`,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer',keepalive:true})
+      .then(r=>r.ok?r.json():Promise.reject()).then(j=>{ if(typeof j.value!=='number') throw 0; try{ localStorage.setItem(done,'1'); }catch(e){} })
+      .catch(()=>{}) /* not confirmed: try again on the next visit */
+      .finally(()=>{ try{ localStorage.removeItem(lock); }catch(e){} }); } };
 Count.once('visitors');
 function startFlow(from){
   if(app.active) return;
