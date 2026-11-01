@@ -683,7 +683,7 @@ body.in-flow .lime-bg.flow-bg,body.on-dash .lime-bg.flow-bg{opacity:1}
   <dl class="about-faq">
     <dt>Is Urge Helper free?</dt><dd>Yes. No ads, no subscription, no payment of any kind.</dd>
     <dt>Do I need an account?</dt><dd>No. You can start a session right away. Signing in only lets you keep your promise, journal and progress on this device.</dd>
-    <dt>Is it private?</dt><dd>Yes. There are no trackers or cookies. The only thing counted is two anonymous totals: how many people have visited and how many pressed Help me now. Your promise, journal and history stay in your own browser.</dd>
+    <dt>Is it private?</dt><dd>Yes. There are no trackers or cookies. The only thing counted is three anonymous totals: how many people have visited, pressed Help me now and made an account. Your promise, journal and history stay in your own browser.</dd>
     <dt>How long does a session take?</dt><dd>About 10 to 15 minutes, a little longer if the urge is strong. You can keep going if it hasn’t passed.</dd>
     <dt>Does it work?</dt><dd>Each technique has research behind it, mostly from studies on porn use, cravings and habits. The full list is under Science. This exact sequence hasn’t been tested as a whole.</dd>
     <dt>Is this therapy?</dt><dd>No. It’s a tool for the moment an urge hits. If urges feel compulsive or distressing, a therapist who does CBT or ACT has the strongest evidence.</dd>
@@ -692,7 +692,7 @@ body.in-flow .lime-bg.flow-bg,body.on-dash .lime-bg.flow-bg{opacity:1}
   <p class="mono" style="margin-top:6px">What you get</p>
   <ul><li>No ads, no feeds, no links out. Nothing to scroll.</li><li>Every step links to the research behind it, under Science.</li></ul>
   <p class="mono" style="margin-top:6px">Privacy</p>
-  <ul><li>No trackers, no cookies, just two anonymous totals.</li><li>Your promise, journal and history are stored only in your browser. There is no server holding them.</li><li>If you sign in with Google, it only shares your name and email with this page, and Google is only contacted if you choose it.</li><li>You can delete everything from your account menu at any time.</li></ul>
+  <ul><li>No trackers, no cookies, just three anonymous totals.</li><li>Your promise, journal and history are stored only in your browser. There is no server holding them.</li><li>If you sign in with Google, it only shares your name and email with this page, and Google is only contacted if you choose it.</li><li>You can delete everything from your account menu at any time.</li></ul>
   <p class="sub">Read the full <a href="privacy.html" style="color:var(--text)">privacy policy</a>.</p>
   <p class="mono" style="margin-top:6px">What it isn’t</p>
   <p class="sub">It isn’t treatment. If urges feel compulsive or distressing, a CBT or ACT therapist has the strongest evidence. If you’re in crisis, you can call or text 988, any time.</p>
@@ -1869,7 +1869,7 @@ function onboard(base,edit=false){
         <button class="pill" type="button" data-n>Make the promise</button></div>`;
       $('[data-n]',page).onclick=()=>{ p.pledge=$('#obPledge',page).value.trim()||def; p.contact=$('#obWho',page).value.trim();
         if(!p.cleanSince) p.cleanSince=new Date().toISOString();
-        delete p.days; Profile.set(p); Store.set('signedIn',true); app.user=p; claimPending(); app.view='dash'; m.close(); refreshHome(); }; }
+        delete p.days; if(!edit) Count.once('signups'); Profile.set(p); Store.set('signedIn',true); app.user=p; claimPending(); app.view='dash'; m.close(); refreshHome(); }; }
   ];
   const show=i=>{ stepL.textContent=`${i+1} of 2`; pages[i](); };
   show(0);
