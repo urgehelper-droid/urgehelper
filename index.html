@@ -683,7 +683,7 @@ body.in-flow .lime-bg.flow-bg,body.on-dash .lime-bg.flow-bg{opacity:1}
   <dl class="about-faq">
     <dt>Is Urge Helper free?</dt><dd>Yes. No ads, no subscription, no payment of any kind.</dd>
     <dt>Do I need an account?</dt><dd>No. You can start a session right away. Signing in only lets you keep your promise, journal and progress on this device.</dd>
-    <dt>Is it private?</dt><dd>Yes. There are no trackers or cookies. The only thing counted is three anonymous totals: how many people have visited, pressed Help me now and made an account. Your promise, journal and history stay in your own browser.</dd>
+    <dt>Is it private?</dt><dd>Yes. There are no trackers or cookies. The only things counted are anonymous totals: how many people have visited, pressed Help me now and made an account, plus total visits and total time spent on the site. Your promise, journal and history stay in your own browser.</dd>
     <dt>How long does a session take?</dt><dd>About 10 to 15 minutes, a little longer if the urge is strong. You can keep going if it hasn’t passed.</dd>
     <dt>Does it work?</dt><dd>Each technique has research behind it, mostly from studies on porn use, cravings and habits. The full list is under Science. This exact sequence hasn’t been tested as a whole.</dd>
     <dt>Is this therapy?</dt><dd>No. It’s a tool for the moment an urge hits. If urges feel compulsive or distressing, a therapist who does CBT or ACT has the strongest evidence.</dd>
@@ -692,7 +692,7 @@ body.in-flow .lime-bg.flow-bg,body.on-dash .lime-bg.flow-bg{opacity:1}
   <p class="mono" style="margin-top:6px">What you get</p>
   <ul><li>No ads, no feeds, no links out. Nothing to scroll.</li><li>Every step links to the research behind it, under <a href="/science/" style="color:var(--text)">Science</a>.</li></ul>
   <p class="mono" style="margin-top:6px">Privacy</p>
-  <ul><li>No trackers, no cookies, just three anonymous totals.</li><li>Your promise, journal and history are stored only in your browser. There is no server holding them.</li><li>If you sign in with Google, it only shares your name and email with this page, and Google is only contacted if you choose it.</li><li>You can delete everything from your account menu at any time.</li></ul>
+  <ul><li>No trackers, no cookies, just a few anonymous totals.</li><li>Your promise, journal and history are stored only in your browser. There is no server holding them.</li><li>If you sign in with Google, it only shares your name and email with this page, and Google is only contacted if you choose it.</li><li>You can delete everything from your account menu at any time.</li></ul>
   <p class="sub">Read the full <a href="privacy.html" style="color:var(--text)">privacy policy</a>.</p>
   <p class="mono" style="margin-top:6px">Guides</p>
   <ul><li><a href="/how-to-stop-porn-urges/" style="color:var(--text)">How to stop porn urges when they hit</a></li><li><a href="/urge-surfing/" style="color:var(--text)">Urge surfing: how to ride out a porn urge</a></li><li><a href="/relapsed-what-now/" style="color:var(--text)">Relapsed on porn? What to do now</a></li><li><a href="/science/" style="color:var(--text)">The research behind every step</a></li></ul>
@@ -1616,7 +1616,7 @@ function dailyThought(){ return DAILY[(new Date().getDate()-1)%DAILY.length]; } 
 function acctInner(label){ return `<span class="face" aria-hidden="true"></span><span>${esc(label)}</span>`; }
 
 /* ============ enter / leave ============ */
-/* Two private, anonymous tallies: how many different people have visited, and how many pressed Help me now.
+/* Private, anonymous tallies: different people who visited, pressed Help me now or made an account, plus visits and time on site.
    Each browser adds one, once, and remembers that only in its own storage. No ID, cookie or content is sent.
    Accuracy rules: only the real site counts, bots and automated browsers never count, a device is marked
    counted only after the server confirms, and two tabs opening at once can't both count. */
@@ -1629,8 +1629,18 @@ const Count={ api:'https://abacus.jasoncameron.dev', ns:'urgehelper-com',
     fetch(`${this.api}/hit/${this.ns}/${k}`,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer',keepalive:true})
       .then(r=>r.ok?r.json():Promise.reject()).then(j=>{ if(typeof j.value!=='number') throw 0; try{ localStorage.setItem(done,'1'); }catch(e){} })
       .catch(()=>{}) /* not confirmed: try again on the next visit */
-      .finally(()=>{ try{ localStorage.removeItem(lock); }catch(e){} }); } };
-Count.once('visitors');
+      .finally(()=>{ try{ localStorage.removeItem(lock); }catch(e){} }); },
+  add(k){ fetch(`${this.api}/hit/${this.ns}/${k}`,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer',keepalive:true}).catch(()=>{}); },
+  /* Average time on site = total time ÷ visits. A visit is one tab, however many reloads.
+     Time adds 15 seconds at a time, only while the page is on screen and someone is there:
+     they touched, scrolled or typed in the last 2 minutes, or a session is running (eyes-closed steps are quiet). */
+  timer(){ if(!this.live||this.bot) return;
+    try{ if(!sessionStorage.getItem('uh.visit')){ sessionStorage.setItem('uh.visit','1'); this.add('visits'); } }catch(e){ return; }
+    let seen=Date.now(), t=0; const poke=()=>{ seen=Date.now(); };
+    ['pointerdown','keydown','scroll','touchstart','wheel'].forEach(ev=>addEventListener(ev,poke,{passive:true,capture:true}));
+    setInterval(()=>{ if(document.visibilityState!=='visible'||(!app.active&&Date.now()-seen>120000)) return;
+      if((t+=5)>=15){ t-=15; this.add('time-15s'); } },5000); } };
+Count.once('visitors'); Count.timer();
 function startFlow(from){
   if(app.active) return;
   Count.once('helped'); Voice.unlock();
