@@ -641,7 +641,7 @@ body.in-flow .lime-bg.flow-bg,body.on-dash .lime-bg.flow-bg{opacity:1}
   </nav>
   <section class="dash-center">
     <div class="dash-milo" id="dMilo"></div>
-    <h1 class="dash-hi" id="dHi">Hey.</h1>
+    <h2 class="dash-hi" id="dHi">Hey.</h2>
     <div class="dash-stats">
       <div><b id="dFaced">0</b><span>urges faced here</span></div>
       <div><b id="dWeek">0</b><span>this week</span></div>
@@ -690,10 +690,12 @@ body.in-flow .lime-bg.flow-bg,body.on-dash .lime-bg.flow-bg{opacity:1}
   </dl>
 
   <p class="mono" style="margin-top:6px">What you get</p>
-  <ul><li>No ads, no feeds, no links out. Nothing to scroll.</li><li>Every step links to the research behind it, under Science.</li></ul>
+  <ul><li>No ads, no feeds, no links out. Nothing to scroll.</li><li>Every step links to the research behind it, under <a href="/science/" style="color:var(--text)">Science</a>.</li></ul>
   <p class="mono" style="margin-top:6px">Privacy</p>
   <ul><li>No trackers, no cookies, just three anonymous totals.</li><li>Your promise, journal and history are stored only in your browser. There is no server holding them.</li><li>If you sign in with Google, it only shares your name and email with this page, and Google is only contacted if you choose it.</li><li>You can delete everything from your account menu at any time.</li></ul>
   <p class="sub">Read the full <a href="privacy.html" style="color:var(--text)">privacy policy</a>.</p>
+  <p class="mono" style="margin-top:6px">Guides</p>
+  <ul><li><a href="/how-to-stop-porn-urges/" style="color:var(--text)">How to stop porn urges when they hit</a></li><li><a href="/urge-surfing/" style="color:var(--text)">Urge surfing: how to ride out a porn urge</a></li><li><a href="/relapsed-what-now/" style="color:var(--text)">Relapsed on porn? What to do now</a></li><li><a href="/science/" style="color:var(--text)">The research behind every step</a></li></ul>
   <p class="mono" style="margin-top:6px">What it isn’t</p>
   <p class="sub">It isn’t treatment. If urges feel compulsive or distressing, a CBT or ACT therapist has the strongest evidence. If you’re in crisis, you can call or text 988, any time.</p>
 </article>
@@ -869,7 +871,7 @@ const Voice=(()=>{
   el.onended=el.onpause=()=>Music.duck(false);
   return { ok:true,
     /* iOS only lets audio play after a tap, so the tap that starts a session primes the player */
-    unlock(){ el.muted=true; el.src='voice/'+[...IDS][0]+'.m4a'; el.play().then(()=>{ el.pause(); el.muted=false; }).catch(()=>{ el.muted=false; }); },
+    unlock(){ if(!el.paused) return; el.muted=true; el.src='voice/'+[...IDS][0]+'.m4a'; el.play().then(()=>{ el.pause(); el.muted=false; }).catch(()=>{ el.muted=false; }); },
     say(t){ if(!on||!soundOn) return; let id=hash(t);
       if(!IDS.has(id)&&/^Picture /.test(t)) id=hash('Picture that place. Make it as real as you can.'); /* a place they typed themselves */
       if(!IDS.has(id)) return;
@@ -961,7 +963,7 @@ function screen({title,sub,skip=true,early=false,say}){
   if(old){ old.style.top=-stage.scrollTop+'px'; old.classList.add('leaving'); setTimeout(()=>old.remove(),420); }
   const s=document.createElement('div'); s.className='screen';
   const n=title?title.split(' ').length:0;
-  s.innerHTML=`${say?miloSay(say):''}${title?`<h1 class="h">${words(title,120)}</h1>`:''}${sub?`<p class="sub rv" style="--d:${200+n*32}ms">${sub}</p>`:''}
+  s.innerHTML=`${say?miloSay(say):''}${title?`<h2 class="h">${words(title,120)}</h2>`:''}${sub?`<p class="sub rv" style="--d:${200+n*32}ms">${sub}</p>`:''}
     <div class="body rv" style="--d:${320+n*32}ms"></div>
     <div class="actions rv" style="--d:${420+n*32}ms"></div>
     ${skip||early?`<div class="actions rv" style="--d:${520+n*32}ms;flex-direction:row;justify-content:center">${skip?'<button class="quiet" type="button" data-skip>Skip</button>':''}${early?'<button class="quiet" type="button" data-early>I’m OK now</button>':''}</div>`:''}`;
@@ -1659,7 +1661,7 @@ function exitFlow(){
   Sky.to(0,1800);
 }
 /* The moment someone tries to leave is often the moment the urge is winning ("quitting the quit").
-   So every time they hit leave, Milo asks why, answers that reason, and leaving takes a deliberate hold. */
+   So when they hit the X, Milo asks why, answers that reason, and leaving takes a deliberate hold. */
 const LEAVE={
   better:{t:'I feel better now', h:'Quieter isn’t gone.', p:'Right when it eases is when most people stop, and it’s when the urge sneaks back. Finish with a quick plan. It takes two minutes.', stay:'Finish with a plan', act:()=>jump('plan')},
   givein:{t:'I’m about to give in', h:'That’s the urge talking.', p:'It’s at its loudest right now, and the loudest point is the peak. Peaks pass. Stay with me one more minute and see.', stay:'Okay, one more minute', act:()=>{}},
@@ -1798,9 +1800,13 @@ function askToStay(force=false){
 }
 $('#helpBtn').onclick=()=>startFlow($('#helpBtn'));
 $('#dHelp').onclick=()=>startFlow($('#dHelp'));
+/* Guide pages link to /#help so their Help me now button drops you straight into a session.
+   Sound needs a tap first, so the first tap turns the music and voice on. */
+if(location.hash==='#help'){ try{history.replaceState(null,'',location.pathname);}catch(e){} setTimeout(()=>startFlow($('#helpBtn')),60);
+  addEventListener('pointerdown',()=>{ if(app.active){ Music.start(); Voice.unlock(); } },{once:true}); }
 $('#closeBtn').onclick=()=>app.finished?exitFlow():askToStay(true);
-addEventListener('popstate',()=>{ if(!app.active) return; if(!app.asked&&!app.finished){ try{history.pushState({flow:1},'');}catch(e){} askToStay(); } else exitFlow(); });
-document.addEventListener('mouseout',e=>{ if(app.active&&!app.asked&&!app.finished&&!e.relatedTarget&&e.clientY<=0) askToStay(); });
+// Only the X asks why they're leaving. The back button just leaves.
+addEventListener('popstate',()=>{ if(app.active) exitFlow(); });
 if(!Voice.ok) Voice.set(false);
 
 /* ============ sheets ============ */
@@ -1965,7 +1971,7 @@ const PAPERS=[
 ];
 function openScience(){
   sheet(`<div class="sheet-top"><p class="mono">The science</p>${X}</div><h2>The research behind every step.</h2>
-    <p class="sub">Here’s the research each step is built on, starting with studies on porn itself. Tap a title to read it yourself.</p>
+    <p class="sub">Here’s the research each step is built on, starting with studies on porn itself. Tap a title to read it yourself, or open it as a <a href="/science/" style="color:var(--text)">full page</a>.</p>
     <p class="mono" style="margin-top:6px">How your path is chosen</p>
     <p class="sub">Every session starts the same way: check in, step away from where you were (Hallberg et al. 2019; Bőthe et al. 2021), name what led here, and call out the excuses the urge makes, swapping each for what’s actually true, the way CBT programs teach (Allen et al. 2017; Bőthe et al. 2021). Then 20 pushups, because short, hard exercise cuts cravings fastest (Haasova et al. 2013). Next come two steps picked for what set you off (below), and every path includes stacking blocks, the only craving game tested on sex cravings too (Skorka-Brown et al. 2015). Every session then closes the same way: think through how you’d feel afterwards, which cut cravings by about a third (Kober et al. 2010), ride out what’s left of the urge (Crosby &amp; Twohig 2016; Holas et al. 2020), think about what matters (Todorovic et al. 2023), and make an if-then plan (Gollwitzer &amp; Sheeran 2006). Before your plan, you write it out, because tracking what happened, especially on paper, helps people reach their goals (Harkin et al. 2016). If the urge is still strong at the end, you can keep going with a brisk walk, which held cravings down for close to an hour (Taylor &amp; Katomeri 2007).</p>
     <p class="sub">How strong the urge is matters too. Distraction works better than reflection when emotions run high (Sheppes et al. 2011, 2014). So your path is set by two things. First, how strong it is. At 6 out of 10 or above, you also turn on a content blocker or Screen Time limit right away. Cutting off easy access is a core move in the CBT programs (Hallberg et al. 2019; Bőthe et al. 2021). Your movement round runs longer, because steady moderate effort is what cuts cravings, more than going all out (Haasova et al. 2014). Distracting steps come first. A silent muscle hold is added, since holds cut cravings too (Ussher et al. 2006). And riding it out comes before thinking it through. Demanding tasks like the blocks beat simple distraction (Dodds et al. 2019), which is why they’re in every path. Second, what set it off decides the two middle steps:</p>
